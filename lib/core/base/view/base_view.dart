@@ -1,32 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:mobx/mobx.dart';
 
-class BaseView<T> extends StatefulWidget {
+class BaseView<T extends Store> extends StatefulWidget {
   final Widget Function(BuildContext context, T model) onPageBuilder;
   final T? viewModel;
   final Function(T model)? onModelReady;
   final VoidCallback? onModelDispose;
 
-  const BaseView({super.key, this.viewModel, this.onModelReady, this.onModelDispose, required this.onPageBuilder});
+  const BaseView({
+    super.key,
+    this.viewModel,
+    this.onModelReady,
+    this.onModelDispose,
+    required this.onPageBuilder,
+  });
 
   @override
-  State<BaseView> createState() => _BaseViewState();
+  State<BaseView<T>> createState() => _BaseViewState<T>();
 }
 
-class _BaseViewState extends State<BaseView> {
+class _BaseViewState<T extends Store> extends State<BaseView<T>> {
   @override
   void initState() {
     super.initState();
-    if (widget.onModelReady != null) widget.onModelReady!(widget.viewModel);
+    if (widget.onModelReady != null && widget.viewModel != null) {
+      widget.onModelReady!(widget.viewModel!);
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    if (widget.onModelDispose != null) widget.onModelDispose!();
+    if (widget.onModelDispose != null) {
+      widget.onModelDispose!();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.onPageBuilder(context, widget.viewModel);
+    if (widget.viewModel == null) {
+      return const Center(child: Text('ViewModel is not provided!'));
+    }
+    return widget.onPageBuilder(context, widget.viewModel!);
   }
 }
